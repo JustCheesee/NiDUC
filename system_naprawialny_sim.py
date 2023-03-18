@@ -29,8 +29,7 @@ def element_naprawialny(l, mi, t):							#l = lambda
 		czasLista.append(czas)
 
 	plt.plot(czasLista, stanLista)
-	# plt.axis([0, 10000, 0, 1.2])
-	plt.xlim(0, 10000)
+	plt.xlim(0, t)
 	plt.show()
 
 def main():
