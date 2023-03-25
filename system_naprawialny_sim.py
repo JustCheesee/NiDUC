@@ -25,18 +25,18 @@ class Serwerownia:
 			print("Czas: ", czas, " Stan: ", stan)
 
 			while czas < self.t:
-				s = stan;											# stan aktualny
+				s = stan											# stan aktualny
 				stanLista.append(stan)
 				if stan == 0:										# element sprawny - wystąpi uszkodzenie
 					r = np.random.exponential(self.lam)
 					czas = czas + r									# losowanie chwili uszkodzenia
 					gotowosc = gotowosc + r
 					czasLista.append(czas)
-					stan = 1;										# zmiana stanu na 1 (element uszkodzony)
+					stan = 1										# zmiana stanu na 1 (element uszkodzony)
 				else:
-					czas = czas + np.random.exponential(self.mi);		# losowanie chwili zakończenia naprawy
+					czas = czas + np.random.exponential(self.mi)		# losowanie chwili zakończenia naprawy
 					czasLista.append(czas)
-					stan = 0;
+					stan = 0
 				print("Czas: ", czas, " Stan: ", stan)
 				stanLista.append(stan)
 				czasLista.append(czas)
