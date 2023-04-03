@@ -1,12 +1,14 @@
 from Server import Server
+from Service import Service
 import os
-
+import numpy as np
 
 class Simulation:
 
     def __init__(self, sim_time):
         self.sim_time = sim_time
         self.queue = []
+        self.repair = []
 
     def create_servers(self, file_name, num_servers):
         for i in range(num_servers):
@@ -15,6 +17,17 @@ class Simulation:
             for incident in server.queue:
                 self.queue.append(incident)
         self.sort_queue()
+        # repair crew ? w tym miejscu
+
+    def load_repair(self, file_name):
+        with open(file_name, 'r') as file:
+            config = file.readlines()
+        for l in config:
+            line = l.split(";")
+            service = Service(int(line[0]), int(line[1]), int(line[2]))
+            self.repair.append(service)
+        # for service in self.repair:
+          #   print(service.services)
 
     #Sortowanie kolejki według czasow
     def sort_queue(self):
@@ -28,6 +41,39 @@ class Simulation:
             if not swapped:
                 return
 
+    # naprawa niesamodzielna na całym queue
+    def service_repair(self, sim_time, availability_level):
+        shift = 0
+        for incident in self.queue:
+            # uwolnij crew tutaj
+            # ... 
+            if incident[3] > 1:
+                # sprawdz czy dostepna ekipa
+                repair_time = 0
+                next_crew_up = 0
+                for crew in self.repair:
+                    if crew.free:
+                       repair_time = crew.services[availability_level]
+                       crew.free = False
+                       crew.time_free = repair_time + incident[0]
+                       break
+                    else
+                        if crew.time_free < next_crew_up:
+                            next_crew_up = crew.time_free
+                if repair_time = 0:
+                    for crew in self.repair:
+                        if crew.time_free = next_crew_up:
+                           repair_time = crew.services[availability_level] + next_crew_up - incident[0]
+                           crew.free = False
+                           crew.time_free += repair_time
+                           break
+            if incident[0] + shift + incident[1] + repair_time < sim_time:                               
+                # incident[0] = incident[0] + shift
+                incident[1] = repair_time
+                # shift += incident[1]
+            else:
+                self.queue.remove(incident)
+
     #Tworzenie folderu i zapisywanie wynikow do plikow (jeden plik to jeden serwer)
     def write_output(self):
         folders = 0
@@ -40,14 +86,17 @@ class Simulation:
             file_name = str(incident[2].server).replace("<", "")
             file_name = file_name.replace(">", "")
             f = open(path+"/"+file_name+".txt", "a")
-            f.write(str(incident[2].name)+";"+str(incident[0])+";1\n")
+            f.write(str(incident[2].name)+";"+str(incident[0])+";"+str(incident[3])+"\n")
             f.write(str(incident[2].name)+";"+str(incident[0]+incident[1])+";0\n")
             f.close()
 
 
 def main():
     x = Simulation(100000)
+    x.load_repair("repair.txt")
     x.create_servers("config.txt", 3)
+    for incident in x.queue:
+        print(incident[0], " ", incident[1], " ", incident[3])
     x.write_output()
 
 
