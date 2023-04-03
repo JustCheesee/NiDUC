@@ -1,8 +1,6 @@
 from ServerComponent import ServerComponent
 
-
 class Server:
-
     def __init__(self):
         self.queue = []
 
@@ -21,12 +19,17 @@ class Server:
     def shift_queue(self, sim_time):
         shift = 0
         for incident in self.queue:
-            if incident[0] + shift + incident[1] < sim_time:
+            # jeœli incident to niesamonaprawialny
+            #if incident[3] > 1:
+                # sprawdzenie czy dostepny serwis
+                # find_repair_team()
+                        
+                # jesli dostepny, oblicz czas naprawy
+            if incident[0] + shift + incident[1] < sim_time:                               
                 incident[0] = incident[0] + shift
                 shift += incident[1]
             else:
                 self.queue.remove(incident)
-
 
 def main():
     x = Server()

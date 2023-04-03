@@ -57,12 +57,12 @@ class Simulation:
                        crew.free = False
                        crew.time_free = repair_time + incident[0]
                        break
-                    else
+                    else:
                         if crew.time_free < next_crew_up:
                             next_crew_up = crew.time_free
-                if repair_time = 0:
+                if repair_time == 0:
                     for crew in self.repair:
-                        if crew.time_free = next_crew_up:
+                        if crew.time_free == next_crew_up:
                            repair_time = crew.services[availability_level] + next_crew_up - incident[0]
                            crew.free = False
                            crew.time_free += repair_time
