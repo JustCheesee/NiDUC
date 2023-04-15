@@ -3,7 +3,10 @@ from Service import Service
 import os
 import numpy as np
 
+
 class Simulation:
+
+    counter_id = 0
 
     def __init__(self, sim_time):
         self.sim_time = sim_time
@@ -12,7 +15,8 @@ class Simulation:
 
     def create_servers(self, file_name, num_servers):
         for i in range(num_servers):
-            server = Server()
+            Simulation.counter_id += 1
+            server = Server(Simulation.counter_id)
             server.load_config(file_name, self.sim_time)
             for incident in server.queue:
                 self.queue.append(incident)
@@ -51,7 +55,7 @@ class Simulation:
             # uwolnij crew tutaj
             # ... 
             for crew in self.repair:
-                if crew.free == False:
+                if not crew.free:
                     if crew.time_free < incident[0]:
                         crew.free = True
                         crew.time_free = 0
@@ -64,7 +68,7 @@ class Simulation:
                     # jesli dostepna, zmien jej stan i pobierz czas naprawy
                        repair_time = crew.services[availability_level]
                        crew.free = False
-                       crew.time_free = repair_time + incident[0]
+                       crew.time_free = repair_time + incident[0] + incident[1] #dodanie czasu naprawy
                        break
                     else:
                         if crew.time_free < next_crew_up:
@@ -75,18 +79,20 @@ class Simulation:
                         # znaleziono odpowiednia ekipe
                         if crew.time_free == next_crew_up:
                            repair_time = crew.services[availability_level] + next_crew_up - incident[0]
-                           shift += next_crew_up - incident[0]
+                           #shift += next_crew_up - incident[0]
+                           shift = next_crew_up - incident[0]
                            crew.free = False
                            crew.time_free += repair_time
                            break
                 if incident[0] + incident[1] + repair_time + shift < sim_time:
-                    incident[0] += shift
-                    incident[1] = repair_time
+                    #incident[0] += shift
+                    incident[1] += repair_time
                 else:
                     self.queue.remove(incident)
             else:
                 if incident[0] + shift + incident[1] < sim_time:
-                    incident[0] += shift
+                    o = 0
+                    #incident[0] += shift
                 else:    
                     self.queue.remove(incident)
             repair_time = 0
@@ -110,8 +116,8 @@ class Simulation:
             # generalna kolejka
             file_name = file_name.replace("Server.Server object at ", "")
             f = open(path+"/general_queue_simulation_" + str(folders) +".txt", "a")
-            f.write(file_name+";"+str(incident[2].name)+";"+str(incident[0])+";"+str(incident[3])+"\n")
-            f.write(file_name+";"+str(incident[2].name)+";"+str(incident[0]+incident[1])+";0\n")
+            f.write(str(incident[2].server.id)+";"+str(incident[2].name)+";"+str(incident[0])+";"+str(incident[3])+"\n")
+            f.write(str(incident[2].server.id)+";"+str(incident[2].name)+";"+str(incident[0]+incident[1])+";0\n")
             f.close()
 
 

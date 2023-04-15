@@ -1,8 +1,10 @@
 from ServerComponent import ServerComponent
 
+
 class Server:
-    def __init__(self):
+    def __init__(self, id):
         self.queue = []
+        self.id = id
 
     def load_config(self, file_name, sim_time):
         with open(file_name, 'r') as file:
@@ -19,17 +21,19 @@ class Server:
     def shift_queue(self, sim_time):
         shift = 0
         for incident in self.queue:
-            # jeœli incident to niesamonaprawialny
+            # jeï¿½li incident to niesamonaprawialny
             #if incident[3] > 1:
                 # sprawdzenie czy dostepny serwis
                 # find_repair_team()
                         
                 # jesli dostepny, oblicz czas naprawy
-            if incident[0] + shift + incident[1] < sim_time:                               
+            #if incident[0] + shift + incident[1] < sim_time:
+            if incident[0] + shift < sim_time:
                 incident[0] = incident[0] + shift
                 shift += incident[1]
             else:
                 self.queue.remove(incident)
+
 
 def main():
     x = Server()

@@ -25,7 +25,8 @@ class ServerComponent:
                 mi_time = np.random.exponential(self.mi)
                 fault_type = 1
             else:
-                mi_time = .00000000001
+                #mi_time = .00000000001
+                mi_time = np.random.exponential(self.mi)
                 # mi_time = np.random.randint(24)
                 fault_type = 2
             res.append([current_time, mi_time, self, fault_type])
