@@ -44,15 +44,24 @@ class Simulation:
     # naprawa niesamodzielna na całym queue
     def service_repair(self, sim_time, availability_level):
         shift = 0
+        repair_time = 0
+        next_crew_up = sim_time
+        
         for incident in self.queue:
             # uwolnij crew tutaj
             # ... 
-            if incident[3] > 1:
+            for crew in self.repair:
+                if crew.free == False:
+                    if crew.time_free < incident[0]:
+                        crew.free = True
+                        crew.time_free = 0
+                        next_crew_up = incident[0]
+
+            if incident[3] > 1:       
                 # sprawdz czy dostepna ekipa
-                repair_time = 0
-                next_crew_up = 0
                 for crew in self.repair:
                     if crew.free:
+                    # jesli dostepna, zmien jej stan i pobierz czas naprawy
                        repair_time = crew.services[availability_level]
                        crew.free = False
                        crew.time_free = repair_time + incident[0]
@@ -60,19 +69,27 @@ class Simulation:
                     else:
                         if crew.time_free < next_crew_up:
                             next_crew_up = crew.time_free
+                # kazda ekipa zajeta
                 if repair_time == 0:
                     for crew in self.repair:
+                        # znaleziono odpowiednia ekipe
                         if crew.time_free == next_crew_up:
                            repair_time = crew.services[availability_level] + next_crew_up - incident[0]
+                           shift += next_crew_up - incident[0]
                            crew.free = False
                            crew.time_free += repair_time
                            break
-            if incident[0] + shift + incident[1] + repair_time < sim_time:                               
-                # incident[0] = incident[0] + shift
-                incident[1] = repair_time
-                # shift += incident[1]
+                if incident[0] + incident[1] + repair_time + shift < sim_time:
+                    incident[0] += shift
+                    incident[1] = repair_time
+                else:
+                    self.queue.remove(incident)
             else:
-                self.queue.remove(incident)
+                if incident[0] + shift + incident[1] < sim_time:
+                    incident[0] += shift
+                else:    
+                    self.queue.remove(incident)
+            repair_time = 0
 
     #Tworzenie folderu i zapisywanie wynikow do plikow (jeden plik to jeden serwer)
     def write_output(self):
@@ -90,14 +107,22 @@ class Simulation:
             f.write(str(incident[2].name)+";"+str(incident[0]+incident[1])+";0\n")
             f.close()
 
+            # generalna kolejka
+            file_name = file_name.replace("Server.Server object at ", "")
+            f = open(path+"/general_queue_simulation_" + str(folders) +".txt", "a")
+            f.write(file_name+";"+str(incident[2].name)+";"+str(incident[0])+";"+str(incident[3])+"\n")
+            f.write(file_name+";"+str(incident[2].name)+";"+str(incident[0]+incident[1])+";0\n")
+            f.close()
+
 
 def main():
     x = Simulation(100000)
     x.load_repair("repair.txt")
     x.create_servers("config.txt", 3)
+    x.service_repair(x.sim_time, 0)
+    x.write_output()
     for incident in x.queue:
         print(incident[0], " ", incident[1], " ", incident[3])
-    x.write_output()
 
 
 if __name__ == '__main__':
