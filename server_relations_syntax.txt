@@ -1,0 +1,8 @@
+| = OR
+& = AND
+2 = number of the block
+
+example:
+1 | (2&3)
+
+1 OR (2 AND 3)
