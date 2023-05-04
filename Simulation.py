@@ -12,6 +12,7 @@ class Simulation:
         self.sim_time = sim_time
         self.queue = []
         self.repair = []
+        self.relations = ""
 
     def create_servers(self, file_name, num_servers):
         for i in range(num_servers):
@@ -32,6 +33,13 @@ class Simulation:
             self.repair.append(service)
         # for service in self.repair:
           #   print(service.services)
+
+    # Ustaw połączenia między serwerami
+    def set_relations(self, file_name):
+        with open(file_name, 'r') as file:
+            config = file.readlines()
+        for l in config:
+            self.relations = l
 
     #Sortowanie kolejki według czasow
     def sort_queue(self):
@@ -59,7 +67,7 @@ class Simulation:
                     if crew.time_free < incident[0]:
                         crew.free = True
                         crew.time_free = 0
-                        next_crew_up = incident[0]
+                        next_crew_up = incident[0]            
 
             if incident[3] > 1:       
                 # sprawdz czy dostepna ekipa
@@ -113,22 +121,118 @@ class Simulation:
             f.write(str(incident[2].name)+";"+str(incident[0]+incident[1])+";0\n")
             f.close()
 
-            # generalna kolejka
-            file_name = file_name.replace("Server.Server object at ", "")
-            f = open(path+"/general_queue_simulation_" + str(folders) +".txt", "a")
+        # generalna kolejka
+        f = open(path+"/general_queue_simulation_" + str(folders) +".txt", "a")
+        for incident in self.queue:            
             f.write(str(incident[2].server.id)+";"+str(incident[2].name)+";"+str(incident[0])+";"+str(incident[3])+"\n")
             f.write(str(incident[2].server.id)+";"+str(incident[2].name)+";"+str(incident[0]+incident[1])+";0\n")
-            f.close()
+        f.close()
+
+        # serwerownia online/offline
+        # self.relations.count()
+        f = open(path+"/online_offline_simulation_" + str(folders) +".txt", "a")
+        shift = 0
+        potential_shift = 0
+        status_table = []
+        for i in range(Simulation.counter_id):
+            status_table.append(0)
+
+        for crew in self.repair:
+            crew.free = True
+            crew.time_free = 0
+
+        for incident in self.queue:
+            # uwolnij crew tutaj
+            # ... 
+            for crew in self.repair:
+                if not crew.free:
+                    if crew.time_free < incident[0]:
+                        crew.free = True
+                        crew.time_free = 0
+            
+            # aktualizacja stanów serwerów
+            for i in range(len(status_table)):
+                if status_table[i] <= incident[0] + shift:
+                    status_table[i] = 0
+            
+            ### 
+            txt = self.relations
+            for i in range(1, Simulation.counter_id + 1):
+                temp = 0
+                if status_table[i-1] == 0:
+                    temp = 1
+                txt = txt.replace(str(i), str(temp))
+            
+            # serwerownia działa
+            # if eval(txt) == 1:
+            
+            # serwerownia nie działa
+            if eval(txt) != 1:
+                shift += potential_shift
+                # aktualizacja stanów serwerów
+                for i in range(len(status_table)):
+                    if status_table[i] <= incident[0] + shift:
+                        status_table[i] = 0
+
+            # samonaprawialne    
+            if incident[3] < 2:
+                status_table[incident[2].server.id - 1] = incident[0] + incident[1] + shift
+                # wypisz do pliku
+                # 
+            # niesamonaprawialne
+            else:
+                #sprawdz pracownikow
+                lowest_time = 0
+                for crew in self.repair:
+                    if crew.free == True:
+                        crew.free = False
+                        crew.time_free = incident[0] + incident[1] + shift
+                        lowest_time = 0
+                        break
+                    else:
+                        if lowest_time > crew.time_free:
+                            lowest_time = crew.time_free
+                # dostepny pracownik
+                if lowest_time == 0:
+                    status_table[incident[2].server.id - 1] = incident[0] + incident[1] + shift
+
+                # potrzeba poczekania na następne crew
+                else:
+                    incident[1] += lowest_time - (incident[0] + shift)
+                    for crew in self.repair:
+                        if crew.time_free == lowest_time:
+                            crew.free = False
+                            crew.time_free = incident[0] + incident[1] + shift
+                            break
+                    status_table[incident[2].server.id - 1] = incident + incident[1] + shift
+            # potrzebne w tej wersji
+            potential_shift = incident[1]
+
+            # sprawdzenie obecnego stanu serwera
+            txt = self.relations
+            for i in range(1, Simulation.counter_id + 1):
+                temp = 0
+                if status_table[i-1] == 0:
+                    temp = 1
+                txt = txt.replace(str(i), str(temp))
+
+            if eval(txt) != 1:
+                f.write(str(incident[0] + shift)+";"+str(0)+"\n")
+                f.write(str(incident[0] + incident[1] + shift)+";1\n")
+            
+            # jesli potrzebny debug, można odkomentować
+            # print(txt)
+            # print(incident[2].server.id, " ", incident[0] + shift, " ", incident[1], " ", incident[3], " ", eval(txt))
+        f.close()
 
 
 def main():
     x = Simulation(100000)
     x.load_repair("repair.txt")
-    x.create_servers("config.txt", 3)
+    x.create_servers("config.txt", 9)
     x.service_repair(x.sim_time, 0)
+    x.set_relations("server_relations.txt")
     x.write_output()
-    for incident in x.queue:
-        print(incident[0], " ", incident[1], " ", incident[3])
 
 
 if __name__ == '__main__':
