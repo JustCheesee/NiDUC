@@ -216,8 +216,8 @@ class Simulation:
                 txt = txt.replace(str(i), str(temp))
 
             if eval(txt) != 1:
-                f.write(str(incident[0] + shift)+";"+str(0)+"\n")
-                f.write(str(incident[0] + incident[1] + shift)+";1\n")
+                f.write(str(incident[0] + shift)+";"+str(1)+"\n")
+                f.write(str(incident[0] + incident[1] + shift)+";0\n")
             
             # jesli potrzebny debug, można odkomentować
             # print(txt)
