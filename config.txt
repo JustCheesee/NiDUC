@@ -1,3 +1,1 @@
-Ram;2;20000;24
-Processor;4;10000;15
-Motherboard;1;30000;40
+Server;9;20000;42

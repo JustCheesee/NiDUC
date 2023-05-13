@@ -3,7 +3,6 @@ from Service import Service
 import os
 import numpy as np
 
-
 class Simulation:
 
     counter_id = 0
