@@ -1,13 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import poisson, norm
+from scipy.stats import poisson
 
 # tu podac sciezku do pliku z ktorego checmy obliczyc procent sprawnosci dzialania systemu
-data = np.loadtxt("output/simulation_3/online_offline_simulation_3.txt", delimiter=";")
+data = np.loadtxt("output/simulation_2/online_offline_simulation_2.txt", delimiter=";")
 total_time = 100000*0.00365
 
 # Przeliczenie czasów na dni
 data[:, 0] = data[:, 0] * 0.00365
+
+# Obliczenie czasów działania i czasów awarii do histogramu
+working_hours = data[:, 0][data[:, 1] == 1] % 24
+failure_hours = data[:, 0][data[:, 1] == 0] % 24
 
 # Obliczenie czasów działania i czasów awarii
 downtime = data[:, 0][data[:, 1] == 1]
@@ -48,20 +52,6 @@ print(f"Najkrótszy czas działania: {min_val:.2f}")
 print(f"Najdłuższy czas działania: {max_val:.2f}")
 print(f"Poziom ryzyka w %: {risk:.5f}")
 
-# Wykres rozkładu czasów działania
-plt.hist(uptime, bins=10)
-plt.title("Uptime distribution")
-plt.xlabel("Time (days)")
-plt.ylabel("Frequency")
-plt.show()
-
-# Wykres rozkładu czasów awarii
-plt.hist(downtime, bins=50)
-plt.title("Downtime distribution")
-plt.xlabel("Time (days)")
-plt.ylabel("Frequency")
-plt.show()
-
 # Empiryczna funkcja dystrybucji
 n = len(uptime)
 x = np.sort(uptime)
@@ -72,4 +62,17 @@ plt.xlabel("Time (days)")
 plt.ylabel("Probability")
 plt.show()
 
+# Histogram awarii
+plt.hist(failure_hours, bins=24, range=(0, 24), color='green', alpha=0.7)
+plt.xlabel('Czas przerwy (godzin)')
+plt.ylabel('Częstotliwość')
+plt.title('Dystrybucja czasu awarii')
+plt.show()
+
+# Histogram naprawy
+plt.hist(working_hours, bins=24, range=(0, 24), color='red', alpha=0.7)
+plt.xlabel('Czas przerwy (godzin)')
+plt.ylabel('Częstotliwość')
+plt.title('Dystrybucja czasu sprawności')
+plt.show()
 
