@@ -2,11 +2,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import poisson
 
+
 dostepny = 0
 niedostepny = 0
-iloscTestow = 100
+iloscTestow = 1000
 failure_hours_total = []
 totalServerUptime = []
+
+#Warianty umowy
+lacznaIloscPrzerw = 0
+#1. Standard 95%
+szansaStd = 0
+iloscPrzerwStd = 0
+maksPrzerwStd = 0
+srCzasNaprawyStd = 0
+
+#2. Premium 99%
+szansaPr = 0
+iloscPrzerwPr = 0
+maksPrzerwPr = 0
+srCzasNaprawyPr = 0
 
 for i in range(iloscTestow):
 
@@ -21,9 +36,32 @@ for i in range(iloscTestow):
     working_hours = (data[:, 0][data[:, 1] == 1] - data[:, 0][data[:, 1] == 0]) * 24
     failure_hours = (data[:, 0][data[:, 1] == 0] - data[:, 0][data[:, 1] == 1]) * 24
     year = 365
+
+    lacznaIloscPrzerw = 0
+    isMoreStd = False
+    isMorePr = False
+    sredniCzasPrzerwy = 0
     for i in range(len(failure_hours)):
+        lacznaIloscPrzerw += 1
         failure_hours_total.append(failure_hours[i])
         year = year - failure_hours[i] / 24
+        #liczenie maksymalnej dlugosci przerwy
+        if failure_hours[i] > 24:
+            isMoreStd = True
+        if failure_hours[i] > 12:
+            isMorePr = True
+        #liczenie sredniego czasu naprawy
+        sredniCzasPrzerwy += failure_hours[i]
+
+    sredniCzasPrzerwy = sredniCzasPrzerwy / lacznaIloscPrzerw
+    if sredniCzasPrzerwy < 5:
+        srCzasNaprawyStd += 1
+    if sredniCzasPrzerwy < 3:
+        srCzasNaprawyPr += 1
+    if isMoreStd == False:
+        maksPrzerwStd += 1
+    if isMorePr == False:
+        maksPrzerwPr += 1
 
     totalServerUptime.append(year)
     # Obliczenie czasów działania i czasów awarii
@@ -37,6 +75,18 @@ for i in range(iloscTestow):
     downtime_sum = np.sum(downtime_downtime)
     active_percentage = 100 - (downtime_sum / total_time) * 100
     inactive_percentage = 100 - active_percentage
+
+    #liczenie szansy na osiągniecie dostępności
+    if active_percentage > 95:
+        szansaStd += 1
+    if active_percentage > 99:
+        szansaPr += 1
+
+    #liczenie ilosci przerw
+    if lacznaIloscPrzerw < 52:
+        iloscPrzerwStd += 1
+    if lacznaIloscPrzerw < 22:
+        iloscPrzerwPr += 1
 
     #Sumowanie dostępności serwerów w n próbkach
     dostepny += active_percentage
@@ -72,43 +122,7 @@ plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
 plt.axis('equal')
 plt.title('Dostępność systemu w przeciągu roku')
 plt.show()
-#
-# # Obliczenie statystyk punktowych
-# mean = np.mean(uptime) * 1000
-# mean_ci = np.percentile(uptime, [2.5, 97.5]) * 1000
-# variance = np.var(uptime) * 1000
-# min_val = np.min(uptime) * 1000
-# max_val = np.max(uptime) * 1000
-#
-# # Obliczenie poziomu ryzyka
-# lambda_ = len(uptime) / total_time
-# risk = poisson.cdf(np.floor(0.99*total_time), lambda_)
-#
-# # Wyświetlenie wyników
-# print(f"Średni czas działania: {mean:.2f} ({mean_ci[0]:.2f}, {mean_ci[1]:.2f})")
-# print(f"Wariancja czasu działania: {variance:.2f}")
-# print(f"Najkrótszy czas działania: {min_val:.2f}")
-# print(f"Najdłuższy czas działania: {max_val:.2f}")
-# print(f"Poziom ryzyka w %: {risk:.5f}")
-#
-# Ogólny stan serwerowni w trakcie roku
-# plt.plot(czasLista, stanLista)
-# plt.title("Linia czasu dostępności serwera")
-# plt.xlabel("Czas (dni)")
-# plt.ylabel("Stan")
-# plt.xlim(0, total_time)
-# plt.show()
-#
-# # Empiryczna funkcja dystrybucji
-# n = len(uptime)
-# x = np.sort(uptime)
-# y = np.arange(1, n + 1) / n
-# plt.step(x, y)
-# plt.title("Empirical distribution function")
-# plt.xlabel("Time (days)")
-# plt.ylabel("Probability")
-# plt.show()
-#
+
 # Histogram awarii
 plt.hist(failure_hours_total, bins=100, range=(0, 20), color='green', alpha=0.7)
 plt.xlabel('Czas przerwy (godzin)')
@@ -123,17 +137,21 @@ plt.ylabel('Ilość')
 plt.title('Dystrybucja czasu dostępności serwera')
 plt.show()
 
+szansaStd = szansaStd / iloscTestow * 100
+szansaPr = szansaPr / iloscTestow * 100
+print("Szansa na osiągnięcie dostępności > 95%: " + str(szansaStd))
+print("Szansa na osiągnięcie dostępności > 99%: " + str(szansaPr))
+iloscPrzerwStd = iloscPrzerwStd / iloscTestow * 100
+iloscPrzerwPr = iloscPrzerwPr / iloscTestow * 100
+print("Szansa na osiągnięcie ilości przerw < 52: " + str(iloscPrzerwStd))
+print("Szansa na osiągnięcie ilości przerw < 22: " + str(iloscPrzerwPr))
+maksPrzerwStd = maksPrzerwStd / iloscTestow * 100
+maksPrzerwPr = maksPrzerwPr / iloscTestow * 100
+print("Szansa na osiągnięcie maksymalnej długości przerwy < 24: " + str(maksPrzerwStd))
+print("Szansa na osiągnięcie maksymalnej długości przerwy < 12: " + str(maksPrzerwPr))
+srCzasNaprawyStd = srCzasNaprawyStd / iloscTestow * 100
+srCzasNaprawyPr = srCzasNaprawyPr / iloscTestow * 100
+print("Szansa na osiągnięcie średniego czasu naprawy < 5: " + str(srCzasNaprawyStd))
+print("Szansa na osiągnięcie średniego czasu naprawy < 3: " + str(srCzasNaprawyPr))
 
-# Histogram naprawy
-# plt.hist(working_hours_total, bins=100, range=(0, 20), color='red', alpha=0.7)
-# plt.xlabel('Czas przerwy (godzin)')
-# plt.ylabel('Częstotliwość')
-# plt.title('Dystrybucja czasu sprawności')
-# plt.show()
 
-# Histogram czasu działania
-# plt.hist(working_hours_total, bins = 90)
-# plt.title("Czas działania serwera")
-# plt.xlabel("Czas (dni)")
-# plt.ylabel("Częstotliwość")
-# plt.show()

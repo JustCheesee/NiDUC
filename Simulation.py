@@ -243,7 +243,7 @@ def timesRunning(times: int, folder: str):
 
 
 def main():
-    timesRunning(100, "simulation_1")
+    timesRunning(1000, "simulation_1")
 
 
 if __name__ == '__main__':
