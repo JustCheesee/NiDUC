@@ -1,7 +1,6 @@
 from Server import Server
 from Service import Service
 import os
-import numpy as np
 
 
 class Simulation:
@@ -122,13 +121,13 @@ class Simulation:
         #     f.close()
 
         # generalna kolejka
-        # f = open(path + "/general_queue_simulation_" + str(folders) + ".txt", "a")
-        # for incident in self.queue:
-        #     f.write(str(incident[2].server.id) + ";" + str(incident[2].name) + ";" + str(incident[0]) + ";" + str(
-        #         incident[3]) + "\n")
-        #     f.write(str(incident[2].server.id) + ";" + str(incident[2].name) + ";" + str(
-        #         incident[0] + incident[1]) + ";0\n")
-        # f.close()
+        f = open("./output/gen_queue/general_queue_simulation_" + str(counter) + ".txt", "a")
+        for incident in self.queue:
+            f.write(str(incident[2].server.id) + ";" + "2137" + ";" + str(incident[0]) + ";" + str(
+                incident[3]) + "\n")
+            f.write(str(incident[2].server.id) + ";" + "2137" + ";" + str(
+                incident[0] + incident[1]) + ";0\n")
+        f.close()
 
         # serwerownia online/offline
         # self.relations.count()
@@ -219,8 +218,9 @@ class Simulation:
                 txt = txt.replace(str(i), str(temp))
 
             if eval(txt) != 1:
-                f.write(str(incident[0] + shift) + ";1\n")
-                f.write(str(incident[0] + incident[1] + shift) + ";0\n")
+                f.write(str(incident[0] + shift) + ";1;" + str(incident[3]) + "\n")
+                f.write(str(incident[0] + incident[1] + shift) + ";0;" + str(incident[3]) + "\n")
+
 
             # jesli potrzebny debug, można odkomentować
             # print(txt)
@@ -231,7 +231,8 @@ class Simulation:
 def timesRunning(times: int, folder: str):
     path = "./output/" + str(folder)
     os.mkdir(path)
-
+    path = "./output/gen_queue"
+    os.mkdir(path)
     for i in range(times):
         x = Simulation(100000)
         x.load_repair("repair.txt")
@@ -241,9 +242,8 @@ def timesRunning(times: int, folder: str):
         x.write_output(i, folder)
         Simulation.counter_id = 0
 
-
 def main():
-    timesRunning(1000, "simulation_1")
+    timesRunning(10000, "simulation_1")
 
 
 if __name__ == '__main__':
