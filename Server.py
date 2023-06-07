@@ -17,17 +17,10 @@ class Server:
                     self.queue.append(x)
         self.shift_queue(sim_time)
 
-    #Przesuniecie komponentow w czasie o czas naprawy poprzednich elementow (zakladamy ze podczas naprawy serwer jest wylaczony)
+    # Moving components in time by the time of repairing previous elements (assuming that the server is turned off during the repair)
     def shift_queue(self, sim_time):
         shift = 0
         for incident in self.queue:
-            # je�li incident to niesamonaprawialny
-            #if incident[3] > 1:
-                # sprawdzenie czy dostepny serwis
-                # find_repair_team()
-                        
-                # jesli dostepny, oblicz czas naprawy
-            #if incident[0] + shift + incident[1] < sim_time:
             if incident[0] + shift < sim_time:
                 incident[0] = incident[0] + shift
                 shift += incident[1]
