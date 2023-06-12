@@ -2,9 +2,9 @@ from ServerComponent import ServerComponent
 
 
 class Server:
-
-    def __init__(self):
+    def __init__(self, id):
         self.queue = []
+        self.id = id
 
     def load_config(self, file_name, sim_time):
         with open(file_name, 'r') as file:
@@ -17,11 +17,11 @@ class Server:
                     self.queue.append(x)
         self.shift_queue(sim_time)
 
-    #Przesuniecie komponentow w czasie o czas naprawy poprzednich elementow (zakladamy ze podczas naprawy serwer jest wylaczony)
+    # Moving components in time by the time of repairing previous elements (assuming that the server is turned off during the repair)
     def shift_queue(self, sim_time):
         shift = 0
         for incident in self.queue:
-            if incident[0] + shift + incident[1] < sim_time:
+            if incident[0] + shift < sim_time:
                 incident[0] = incident[0] + shift
                 shift += incident[1]
             else:
